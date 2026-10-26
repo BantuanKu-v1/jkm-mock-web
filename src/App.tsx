@@ -2,26 +2,22 @@ import { useEffect, useState } from "react";
 import Header from "./components/layout/Header";
 import ApplicationsPage from "./pages/ApplicationsPage.tsx";
 import LoginPage from "./pages/LoginPage";
+import ApiDocumentationPage from "./pages/ApiDocPage.tsx";
 import { checkSession, logout } from "./services/authService";
-import {
-  ApiError,
-  getApplications,
-  updateApplicationStatus,
-} from "./services/applicationService";
+import { ApiError, getApplications, updateApplicationStatus } from "./services/applicationService";
 import type {
   Application,
   ApplicationStatus,
 } from "./types/applications";
 
 function App() {
+  const isDocumentationPage = window.location.pathname === "/docs";
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoadingApplications, setIsLoadingApplications] = useState(false);
   const [applicationsError, setApplicationsError] = useState("");
-
   const [adminUsername, setAdminUsername] = useState<string | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [sessionError, setSessionError] = useState("");
-
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState("");
 
@@ -33,6 +29,11 @@ function App() {
 
   // Check administrator session when the application starts
   useEffect(() => {
+    // Skip authentication checks for public documentation
+    if (isDocumentationPage) {
+      return;
+    }
+
     let cancelled = false;
 
     const verifySession = async () => {
@@ -62,11 +63,14 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isDocumentationPage]);
 
   // Retrieve applications after administrator authentication
   useEffect(() => {
-    if (!adminUsername) return;
+    // Do not load applications on the documentation page
+    if (isDocumentationPage || !adminUsername) {
+      return;
+    }
 
     let cancelled = false;
 
@@ -81,7 +85,9 @@ function App() {
           setApplications(data);
         }
       } catch (error) {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
 
         if (error instanceof ApiError && error.status === 401) {
           clearAdminState();
@@ -105,7 +111,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [adminUsername]);
+  }, [adminUsername, isDocumentationPage]);
 
   // Handle successful administrator login
   const handleLoginSuccess = async () => {
@@ -124,7 +130,9 @@ function App() {
 
   // Handle administrator logout
   const handleLogout = async () => {
-    if (isLoggingOut) return;
+    if (isLoggingOut) {
+      return;
+    }
 
     setIsLoggingOut(true);
     setLogoutError("");
@@ -171,6 +179,11 @@ function App() {
     }
   };
 
+  // Allow access without administrator authentication
+  if (isDocumentationPage) {
+    return <ApiDocumentationPage />;
+  }
+
   // Display loading state while checking session
   if (isCheckingSession) {
     return (
@@ -199,7 +212,9 @@ function App() {
   // Display login page when administrator is not authenticated
   if (!adminUsername) {
     return (
-        <LoginPage onLoginSuccess={handleLoginSuccess} />
+        <LoginPage
+            onLoginSuccess={handleLoginSuccess}
+        />
     );
   }
 
