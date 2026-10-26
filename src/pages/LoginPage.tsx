@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { login } from "../services/authService";
 
 type LoginPageProps = {
@@ -14,7 +15,7 @@ export default function LoginPage({
   const [error, setError] = useState("");
 
   const handleSubmit = async (
-      event: React.FormEvent<HTMLFormElement>
+      event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
 
@@ -39,21 +40,21 @@ export default function LoginPage({
 
   return (
       <div className="login-page">
-        <div className="login-card">
-          <div className="login-card__brand">
-            <div className="login-card__icon">
+        <div className="login-page__card">
+          <div className="login-page__brand">
+            <div className="login-page__brand-icon">
               JKM
             </div>
 
-            <h1>JKM Mock System</h1>
-            <p>Administration Portal</p>
+            <h1>Administrator Login</h1>
+
+            <p>
+              Sign in to manage JKM applications.
+            </p>
           </div>
 
-          <form
-              className="login-card__form"
-              onSubmit={handleSubmit}
-          >
-            <div className="login-card__field">
+          <form onSubmit={handleSubmit}>
+            <div className="login-page__field">
               <label htmlFor="username">
                 Username
               </label>
@@ -62,14 +63,17 @@ export default function LoginPage({
                   id="username"
                   type="text"
                   value={username}
-                  onChange={(event) => setUsername(event.target.value)}
+                  onChange={(event) =>
+                      setUsername(event.target.value)
+                  }
+                  placeholder="Enter username"
                   autoComplete="username"
                   required
                   disabled={isLoggingIn}
               />
             </div>
 
-            <div className="login-card__field">
+            <div className="login-page__field">
               <label htmlFor="password">
                 Password
               </label>
@@ -78,7 +82,10 @@ export default function LoginPage({
                   id="password"
                   type="password"
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(event) =>
+                      setPassword(event.target.value)
+                  }
+                  placeholder="Enter password"
                   autoComplete="current-password"
                   required
                   disabled={isLoggingIn}
@@ -86,21 +93,55 @@ export default function LoginPage({
             </div>
 
             {error && (
-                <div className="login-card__error" role="alert">
+                <div
+                    className="login-page__error"
+                    role="alert"
+                >
                   {error}
                 </div>
             )}
 
             <button
                 type="submit"
-                className="login-card__submit"
+                className="login-page__submit"
                 disabled={isLoggingIn}
             >
-              {isLoggingIn ? "Logging In..." : "Login"}
+              {isLoggingIn
+                  ? "Logging In..."
+                  : "Sign In"}
             </button>
           </form>
 
-          <div className="login-card__footer">
+          <div className="login-page__docs">
+            <div className="login-page__docs-content">
+            <span className="login-page__docs-label">
+              DEVELOPER RESOURCES
+            </span>
+
+              <h3>API Documentation</h3>
+
+              <p>
+                Explore the JKM Mock API endpoints,
+                eligibility criteria, and integration
+                guidelines for third-party applications.
+              </p>
+            </div>
+
+            <a
+                href="/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="login-page__docs-link"
+            >
+              View API Documentation
+
+              <span aria-hidden="true">
+              ↗
+            </span>
+            </a>
+          </div>
+
+          <div className="login-page__footer">
             For Academic Demonstration Only
           </div>
         </div>
