@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import { AppEnv } from "../types";
 import { apiKeyAuth } from "../middleware/auth";
 import { createApplicationSchema } from "../schemas/applicationSchema";
@@ -9,12 +10,30 @@ import {
   getProgramByCode,
 } from "../services/applicationService";
 
+function normalizeJson(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(normalizeJson);
+  }
+
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+        Object.entries(value)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, entry]) => [key, normalizeJson(entry)])
+    );
+  }
+
+  return value;
+}
+
+function isSameJson(a: unknown, b: unknown): boolean {
+  return JSON.stringify(normalizeJson(a)) === JSON.stringify(normalizeJson(b));
+}
+
 const applications = new Hono<AppEnv>();
 
-// Authenticate all application routes
 applications.use("*", apiKeyAuth);
 
-// Submit an application
 applications.post("/", async (c) => {
   let body: unknown;
 
@@ -37,7 +56,7 @@ applications.post("/", async (c) => {
         {
           success: false,
           message: "Invalid application data",
-          errors: validation.error.flatten(),
+          errors: z.treeifyError(validation.error),
         },
         400
     );
@@ -48,7 +67,6 @@ applications.post("/", async (c) => {
   const db = c.env.jkm_mock_db;
 
   try {
-    // Check for an existing application
     const existing = await getApplicationByExternalId(
         db,
         clientId,
@@ -56,15 +74,18 @@ applications.post("/", async (c) => {
     );
 
     if (existing) {
-      // The same external ID must represent the same submission
       const program = await getProgramByCode(db, data.programCode);
 
       if (
           !program ||
           existing.program_id !== program.id ||
           existing.applicant_name !== data.applicantName ||
-          existing.applicant_identification_no !== (data.applicantIdentificationNo ?? null) ||
-          existing.application_data !== JSON.stringify(data.applicationData ?? {})
+          existing.applicant_identification_no !==
+          (data.applicantIdentificationNo ?? null) ||
+          !isSameJson(
+              JSON.parse(existing.application_data),
+              data.applicationData
+          )
       ) {
         return c.json(
             {
@@ -88,7 +109,6 @@ applications.post("/", async (c) => {
       });
     }
 
-    // Verify that the program exists and is active
     const program = await getProgramByCode(db, data.programCode);
 
     if (!program) {
@@ -130,7 +150,6 @@ applications.post("/", async (c) => {
   }
 });
 
-// Retrieve an application's current status
 applications.get("/:id/status", async (c) => {
   const applicationId = c.req.param("id");
   const clientId = c.get("clientId");
