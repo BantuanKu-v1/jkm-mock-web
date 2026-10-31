@@ -6,9 +6,12 @@ export type ApplicationStatus =
     | "rejected"
     | "cancelled";
 
+export type ProgramCode = "BWE" | "BA" | "BAT" | "BPT";
+
 export type Application = {
   id: string;
   program_id: string;
+  program_code: ProgramCode;
   reference_no: string | null;
   external_reference: string;
   source_system: string;
@@ -39,10 +42,7 @@ export const allowedStatusTransitions: Record<
   cancelled: [],
 };
 
-export const applicationStatusLabels: Record<
-    ApplicationStatus,
-    string
-> = {
+export const applicationStatusLabels: Record<ApplicationStatus, string> = {
   submitted: "Submitted",
   under_review: "Under Review",
   additional_information_required: "Additional Information Required",
@@ -51,9 +51,9 @@ export const applicationStatusLabels: Record<
   cancelled: "Cancelled",
 };
 
-export const programLabels: Record<string, string> = {
-  "jkm-program-bwe": "BWE",
-  "jkm-program-ba": "BA",
-  "jkm-program-bat": "BAT",
-  "jkm-program-bpt": "BPT",
+export const programLabels: Record<ProgramCode, string> = {
+  BWE: "BWE",
+  BA: "BA",
+  BAT: "BAT",
+  BPT: "BPT",
 };
