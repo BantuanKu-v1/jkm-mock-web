@@ -72,10 +72,7 @@ export default function ApplicationTable({
                       </div>
                     </td>
 
-                    <td>
-                      {programLabels[application.program_id] ||
-                          application.program_id}
-                    </td>
+                    <td>{programLabels[application.program_code]}</td>
 
                     <td>
                       {formatDate(application.submitted_at)}
