@@ -1,3 +1,5 @@
+import type { CreateApplicationInput } from "../schemas/applicationSchema";
+
 export type JkmApplicationStatus =
     | "submitted"
     | "under_review"
@@ -6,16 +8,8 @@ export type JkmApplicationStatus =
     | "rejected"
     | "cancelled";
 
-// Application submission request from a third-party system
-export interface CreateApplicationRequest {
-  externalApplicationId: string;
-  programCode: string;
-  applicantName: string;
-  applicantIdentificationNo?: string;
-  applicationData?: Record<string, unknown>;
-}
+export type CreateApplicationRequest = CreateApplicationInput;
 
-// API-facing application record
 export interface JkmApplication {
   id: string;
   sourceSystem: string;
@@ -30,7 +24,6 @@ export interface JkmApplication {
   updatedAt: string;
 }
 
-// Application submission response
 export interface CreateApplicationResponse {
   id: string;
   referenceNo: string;
@@ -39,7 +32,6 @@ export interface CreateApplicationResponse {
   submittedAt: string;
 }
 
-// Application status response
 export interface ApplicationStatusResponse {
   id: string;
   referenceNo: string;
@@ -48,7 +40,6 @@ export interface ApplicationStatusResponse {
   updatedAt: string;
 }
 
-// Database application record (Cloudflare D1)
 export interface DbApplication {
   id: string;
   program_id: string;
@@ -63,11 +54,6 @@ export interface DbApplication {
   updated_at: string;
 }
 
-// Application creation payload
 export type CreateApplicationPayload = CreateApplicationRequest;
-
-// Application creation result
 export type CreateApplicationResult = DbApplication;
-
-// Backward-compatible alias for existing service imports
 export type ApplicationStatus = JkmApplicationStatus;
