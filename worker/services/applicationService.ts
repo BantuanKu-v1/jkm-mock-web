@@ -2,7 +2,7 @@ import { D1Database } from "@cloudflare/workers-types";
 import {
   type CreateApplicationPayload,
   type DbApplication,
-  type ApplicationStatus,
+  type JkmApplicationStatus,
 } from "../types/application";
 
 // Retrieve an application using its external application ID
@@ -76,7 +76,7 @@ export async function createApplication(
       .slice(0, 12)
       .toUpperCase()}`;
 
-  const applicationData = JSON.stringify(data.applicationData ?? {});
+  const applicationData = JSON.stringify(data.applicationData);
 
   const historyId = crypto.randomUUID();
 
@@ -136,9 +136,12 @@ export async function getAllApplications(
 ): Promise<DbApplication[]> {
   const result = await db
       .prepare(`
-        SELECT *
-        FROM jkm_applications
-        ORDER BY submitted_at DESC, id DESC
+          SELECT
+              a.*,
+              p.code AS program_code
+          FROM jkm_applications a
+          JOIN jkm_programs p ON a.program_id = p.id
+          ORDER BY a.submitted_at DESC, a.id DESC
       `)
       .all<DbApplication>();
 
@@ -164,7 +167,7 @@ export async function getAdminApplicationById(
 export async function updateApplicationStatus(
     db: D1Database,
     applicationId: string,
-    status: ApplicationStatus
+    status: JkmApplicationStatus
 ): Promise<DbApplication | null> {
   const application = await getAdminApplicationById(db, applicationId);
 
