@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { Hono } from "hono";
 import { AppEnv } from "../types";
 import { type ApplicationStatus } from "../types/application";
@@ -116,7 +117,7 @@ admin.patch("/applications/:id/status", async (c) => {
         {
           success: false,
           message: "Invalid application status",
-          errors: validation.error.flatten(),
+          errors: z.treeifyError(validation.error),
         },
         400
     );
