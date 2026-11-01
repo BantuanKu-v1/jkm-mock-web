@@ -57,6 +57,14 @@ function formatFieldValue(value: unknown): string {
   return String(value);
 }
 
+function getProgramLabel(programId: string): string {
+  if (Object.prototype.hasOwnProperty.call(programLabels, programId)) {
+    return programLabels[programId as keyof typeof programLabels];
+  }
+
+  return programId;
+}
+
 export default function StatusModal({
   application,
   onClose,
@@ -160,8 +168,7 @@ export default function StatusModal({
                 <div>
                   <span>Program</span>
                   <strong>
-                    {programLabels[application.program_id] ||
-                        application.program_id}
+                    {getProgramLabel(application.program_code)}
                   </strong>
                 </div>
 
