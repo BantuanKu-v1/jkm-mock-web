@@ -5,10 +5,15 @@ import applications from "./routes/applications";
 import admin from "./routes/admin";
 import adminAuth from "./routes/adminAuth";
 import { jsonResponseLimit } from "./middleware/jsonResponseLimit";
+import { publicApiRateLimit } from "./middleware/rateLimit";
 
 const app = new Hono<AppEnv>();
 
 app.use("*", jsonResponseLimit);
+
+// Apply 60 requests/minute to public program APIs
+app.use("/api/v1/programs", publicApiRateLimit);
+app.use("/api/v1/programs/*", publicApiRateLimit);
 
 app.get("/", (c) => {
   return c.json({
