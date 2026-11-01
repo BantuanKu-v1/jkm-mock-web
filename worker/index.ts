@@ -4,8 +4,11 @@ import programs from "./routes/programs";
 import applications from "./routes/applications";
 import admin from "./routes/admin";
 import adminAuth from "./routes/adminAuth";
+import { jsonResponseLimit } from "./middleware/jsonResponseLimit";
 
 const app = new Hono<AppEnv>();
+
+app.use("*", jsonResponseLimit);
 
 app.get("/", (c) => {
   return c.json({
