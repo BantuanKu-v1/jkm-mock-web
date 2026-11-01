@@ -1,38 +1,62 @@
 import { Hono } from "hono";
 import { AppEnv } from "../types";
+import { parsePagination } from "../utils/pagination";
 
 const programs = new Hono<AppEnv>();
 
 // Retrieve all active JKM programs
 programs.get("/", async (c) => {
   try {
-    const { results } = await c.env.jkm_mock_db
+    const { page, limit, offset } = parsePagination(
+        c.req.query("page"),
+        c.req.query("limit")
+    );
+
+    const db = c.env.jkm_mock_db;
+
+    const countResult = await db
         .prepare(`
-            SELECT
-                id,
-                code,
-                name,
-                agency,
-                category,
-                description,
-                assistance_type,
-                assistance_min_amount,
-                assistance_max_amount,
-                assistance_frequency,
-                assistance_description,
-                application_method,
-                official_url,
-                is_active,
-                last_reviewed_at
-            FROM jkm_programs
-            WHERE is_active = 1
-            ORDER BY code
-        `)
+        SELECT COUNT(*) AS total
+        FROM jkm_programs
+        WHERE is_active = 1
+      `)
+        .first<{ total: number }>();
+
+    const { results } = await db
+        .prepare(`
+        SELECT
+          code,
+          name,
+          agency,
+          category,
+          description,
+          assistance_type,
+          assistance_min_amount,
+          assistance_max_amount,
+          assistance_frequency,
+          assistance_description,
+          application_method,
+          official_url,
+          last_reviewed_at
+        FROM jkm_programs
+        WHERE is_active = 1
+        ORDER BY code
+        LIMIT ? OFFSET ?
+      `)
+        .bind(limit, offset)
         .all();
+
+    const total = countResult?.total ?? 0;
 
     return c.json({
       success: true,
       data: results,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     console.error("Failed to retrieve JKM programs:", error);
