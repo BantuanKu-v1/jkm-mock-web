@@ -1,8 +1,8 @@
-import {createMiddleware} from "hono/factory";
-import {AppEnv} from "../types";
+import { createMiddleware } from "hono/factory";
+import { AppEnv } from "../types";
 
 export const publicApiRateLimit = createMiddleware<AppEnv>(
-    async (c) => {
+    async (c, next) => {
       // Use the visitor's Cloudflare-provided IP as the identity for this public, unauthenticated API
       const clientIp = c.req.header("CF-Connecting-IP");
 
@@ -29,5 +29,7 @@ export const publicApiRateLimit = createMiddleware<AppEnv>(
             }
         );
       }
+
+      await next();
     }
-)
+);
