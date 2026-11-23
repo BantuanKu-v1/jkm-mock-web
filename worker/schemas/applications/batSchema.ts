@@ -8,6 +8,14 @@ import {
   nullableText,
 } from "./commonSchema";
 
+export const batBeneficiarySchema = z.strictObject({
+  type: z.enum(["applicant", "dependent"]),
+  fullName: z.string().trim().min(1).max(150),
+  identificationNo: nullableText(12),
+  relationshipToApplicant: nullableText(50),
+  health: healthSchema,
+});
+
 export const batEquipmentSchema = z.strictObject({
   equipmentType: z.string().trim().min(1).max(150),
   equipmentDescription: z.string().trim().min(1).max(3000),
@@ -30,6 +38,7 @@ export const batRecommendationSchema = z.strictObject({
 });
 
 export const batProgramDataSchema = z.strictObject({
+  beneficiary: batBeneficiarySchema,
   functionalLimitationDescription: nullableText(3000),
   equipment: batEquipmentSchema,
   recommendation: batRecommendationSchema,
@@ -44,8 +53,52 @@ export const batApplicationDataSchema = commonApplicationDataSchema
     })
     .superRefine((data, ctx) => {
       const programData = data.programSpecificData;
+      const applicant = data.applicant;
+      const beneficiary = programData.beneficiary;
       const equipment = programData.equipment;
       const recommendation = programData.recommendation;
+
+      if (beneficiary.type === "applicant") {
+        if (beneficiary.fullName !== applicant.fullName) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["programSpecificData", "beneficiary", "fullName"],
+            message: "The beneficiary name must match the applicant name when applying for oneself",
+          });
+        }
+
+        if (
+            beneficiary.identificationNo !== null &&
+            beneficiary.identificationNo !== applicant.identificationNo
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["programSpecificData", "beneficiary", "identificationNo"],
+            message: "The beneficiary identification number must match the applicant identification number when applying for oneself",
+          });
+        }
+      }
+
+      if (beneficiary.type === "dependent") {
+        if (!beneficiary.relationshipToApplicant?.trim()) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["programSpecificData", "beneficiary", "relationshipToApplicant"],
+            message: "The relationship to the applicant is required for dependent beneficiaries",
+          });
+        }
+
+        if (
+            beneficiary.identificationNo !== null &&
+            beneficiary.identificationNo === applicant.identificationNo
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["programSpecificData", "beneficiary", "identificationNo"],
+            message: "The dependent beneficiary must not have the same identification number as the applicant",
+          });
+        }
+      }
 
       if (
           recommendation.recommendationAvailable === true &&
@@ -54,7 +107,7 @@ export const batApplicationDataSchema = commonApplicationDataSchema
         ctx.addIssue({
           code: "custom",
           path: ["programSpecificData", "recommendation", "recommendingAuthority"],
-          message: "The recommending authority is required when a recommendation is availble",
+          message: "The recommending authority is required when a recommendation is available",
         });
       }
 
@@ -82,6 +135,7 @@ export const batApplicationDataSchema = commonApplicationDataSchema
       }
     });
 
+export type BatBeneficiaryData = z.infer<typeof batBeneficiarySchema>;
 export type BatEquipmentData = z.infer<typeof batEquipmentSchema>;
 export type BatRecommendationData = z.infer<typeof batRecommendationSchema>;
 export type BatProgramSpecificData = z.infer<typeof batProgramDataSchema>;
