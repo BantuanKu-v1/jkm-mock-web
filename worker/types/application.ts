@@ -40,6 +40,12 @@ export interface ApplicationStatusResponse {
   updatedAt: string;
 }
 
+export interface ApplicationRecoveryResponse
+    extends CreateApplicationResponse {
+  externalApplicationId: string;
+  updatedAt: string;
+}
+
 export interface DbApplication {
   id: string;
   program_id: string;
