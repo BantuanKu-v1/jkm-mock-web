@@ -54,7 +54,7 @@ export const householdMemberSchema = z.strictObject({
   citizenship: nullableText(50),
   isDependent: nullableBoolean,
   employmentStatus: nullableText(50),
-  occupation: nullableText(50),
+  occupation: nullableText(150),
   monthlyIncome: nullableMoney,
   isStudent: nullableBoolean,
   studyMode: nullableText(50),
