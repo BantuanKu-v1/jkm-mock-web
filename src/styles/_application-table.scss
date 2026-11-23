@@ -1,15 +1,44 @@
 .application-table {
+  flex: 1;
   width: 100%;
-  overflow-x: auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background-color: #cbd5e1;
+
+    &:hover {
+      background-color: #94a3b8;
+    }
+  }
 
   table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     text-align: left;
   }
 
   th {
-    padding: 14px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 11px 16px;
+    border-bottom: 1px solid #e2e8f0;
     background-color: #f8fafc;
     color: #64748b;
     font-size: 12px;
@@ -18,11 +47,15 @@
   }
 
   td {
-    padding: 18px 20px;
+    padding: 10px 16px;
     border-top: 1px solid #f1f5f9;
     color: #334155;
     font-size: 13px;
     vertical-align: middle;
+  }
+
+  tbody tr:first-child td {
+    border-top: none;
   }
 
   tbody tr:hover {
@@ -38,36 +71,132 @@
   &__applicant {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 3px;
+    min-width: 100px;
 
     strong {
       font-size: 13px;
       font-weight: 600;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
     }
 
     span {
       color: #94a3b8;
-      font-size: 12px;
+      font-size: 11px;
+      white-space: nowrap;
     }
   }
 
+  td:nth-child(3),
+  td:nth-child(4) {
+    white-space: nowrap;
+  }
+
   &__action {
-    padding: 8px 14px;
+    padding: 6px 12px;
     border: 1px solid #bfdbfe;
     border-radius: 7px;
     background-color: #eff6ff;
     color: #1d4ed8;
     font-size: 12px;
     font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+            background-color 0.15s ease,
+            border-color 0.15s ease;
 
     &:hover {
+      border-color: #93c5fd;
       background-color: #dbeafe;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
     }
   }
 
   &__empty {
-    padding: 48px 20px !important;
+    padding: 40px 20px !important;
     color: #94a3b8 !important;
     text-align: center;
+  }
+}
+
+// Tablet layout
+@media (max-width: 1024px) {
+  .application-table {
+    th {
+      padding: 10px 12px;
+    }
+
+    td {
+      padding: 9px 12px;
+    }
+  }
+}
+
+// Mobile layout
+@media (max-width: 640px) {
+  .application-table {
+    table {
+      min-width: 720px;
+    }
+
+    th {
+      padding: 9px 12px;
+      font-size: 11px;
+    }
+
+    td {
+      padding: 9px 12px;
+      font-size: 12px;
+    }
+
+    &__applicant {
+      strong {
+        font-size: 12px;
+      }
+
+      span {
+        font-size: 11px;
+      }
+    }
+
+    &__action {
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+  }
+}
+
+// Compact rows for shorter laptop screens.
+@media (max-height: 800px) {
+  .application-table {
+    th {
+      padding: 9px 12px;
+    }
+
+    td {
+      padding: 7px 12px;
+    }
+
+    &__applicant {
+      gap: 2px;
+    }
+
+    &__action {
+      padding: 5px 10px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .application-table {
+    &__action {
+      transition: none;
+    }
   }
 }
