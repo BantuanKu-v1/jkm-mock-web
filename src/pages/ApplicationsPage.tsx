@@ -5,6 +5,7 @@ import ApplicationDetailsPage from "./ApplicationDetailsPage";
 import type {
   Application,
   ApplicationStatus,
+  ProgramCode,
 } from "../types/applications";
 
 type ApplicationsPageProps = {
@@ -30,6 +31,9 @@ export default function ApplicationsPage({
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [programFilter, setProgramFilter] =
+      useState<ProgramCode | "all">("all");
+
   const [statusFilter, setStatusFilter] =
       useState<ApplicationStatus | "all">("all");
 
@@ -42,7 +46,7 @@ export default function ApplicationsPage({
               application.id === selectedApplicationId
       ) ?? null;
 
-  // Filter applications by search query and status.
+  // Filter applications by search query, programme and status.
   const filteredApplications = applications.filter(
       (application) => {
         const query = searchQuery.trim().toLowerCase();
@@ -59,11 +63,19 @@ export default function ApplicationsPage({
                 .toLowerCase()
                 .includes(query);
 
+        const matchesProgram =
+            programFilter === "all" ||
+            application.program_code === programFilter;
+
         const matchesStatus =
             statusFilter === "all" ||
             application.status === statusFilter;
 
-        return matchesSearch && matchesStatus;
+        return (
+            matchesSearch &&
+            matchesProgram &&
+            matchesStatus
+        );
       }
   );
 
@@ -214,6 +226,41 @@ export default function ApplicationsPage({
                     setCurrentPage(1);
                   }}
               />
+
+              <select
+                  className="applications-page__program-filter"
+                  aria-label="Filter applications by programme"
+                  value={programFilter}
+                  onChange={(event) => {
+                    setProgramFilter(
+                        event.target.value as
+                            | ProgramCode
+                            | "all"
+                    );
+
+                    setCurrentPage(1);
+                  }}
+              >
+                <option value="all">
+                  All Programmes
+                </option>
+
+                <option value="BA">
+                  BA
+                </option>
+
+                <option value="BAT">
+                  BAT
+                </option>
+
+                <option value="BPT">
+                  BPT
+                </option>
+
+                <option value="BWE">
+                  BWE
+                </option>
+              </select>
 
               <select
                   aria-label="Filter applications by status"
