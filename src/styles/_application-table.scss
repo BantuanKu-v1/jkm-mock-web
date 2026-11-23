@@ -5,6 +5,7 @@
   min-width: 0;
   overflow: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 
@@ -28,15 +29,43 @@
 
   table {
     width: 100%;
+    min-width: 900px;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
     text-align: left;
+  }
+
+  // Maintain consistent column widths across all programmes.
+  th:nth-child(1) {
+    width: 18%;
+  }
+
+  th:nth-child(2) {
+    width: 24%;
+  }
+
+  th:nth-child(3) {
+    width: 9%;
+  }
+
+  th:nth-child(4) {
+    width: 19%;
+  }
+
+  th:nth-child(5) {
+    width: 20%;
+  }
+
+  th:nth-child(6) {
+    width: 10%;
   }
 
   th {
     position: sticky;
     top: 0;
     z-index: 1;
+    box-sizing: border-box;
     padding: 11px 16px;
     border-bottom: 1px solid #e2e8f0;
     background-color: #f8fafc;
@@ -47,11 +76,14 @@
   }
 
   td {
+    box-sizing: border-box;
+    min-width: 0;
     padding: 10px 16px;
     border-top: 1px solid #f1f5f9;
     color: #334155;
     font-size: 13px;
     vertical-align: middle;
+    overflow-wrap: anywhere;
   }
 
   tbody tr:first-child td {
@@ -65,14 +97,16 @@
   &__reference {
     color: #1e40af;
     font-weight: 600;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   &__applicant {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    min-width: 100px;
+    min-width: 0;
+    max-width: 100%;
 
     strong {
       font-size: 13px;
@@ -84,16 +118,35 @@
     span {
       color: #94a3b8;
       font-size: 11px;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
   }
 
-  td:nth-child(3),
+  // Programme column
+  td:nth-child(3) {
+    white-space: nowrap;
+  }
+
+  // Submission date column
   td:nth-child(4) {
+    white-space: normal;
+    line-height: 1.5;
+  }
+
+  // Status column
+  td:nth-child(5) {
+    white-space: normal;
+  }
+
+  // Action column
+  td:nth-child(6) {
     white-space: nowrap;
   }
 
   &__action {
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 6px 12px;
     border: 1px solid #bfdbfe;
     border-radius: 7px;
@@ -142,7 +195,7 @@
 @media (max-width: 640px) {
   .application-table {
     table {
-      min-width: 720px;
+      min-width: 900px;
     }
 
     th {
@@ -193,6 +246,7 @@
   }
 }
 
+// Reduce unnecessary animations.
 @media (prefers-reduced-motion: reduce) {
   .application-table {
     &__action {
