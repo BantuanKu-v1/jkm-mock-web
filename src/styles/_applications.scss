@@ -80,6 +80,7 @@
     }
   }
 
+  // Search, programme and status filters.
   &__filters {
     display: flex;
     align-items: center;
@@ -111,6 +112,12 @@
     select {
       width: 210px;
       cursor: pointer;
+    }
+
+    .applications-page__program-filter {
+      flex: 0 0 140px;
+      width: 140px;
+      min-width: 0;
     }
   }
 
@@ -231,6 +238,11 @@
       select {
         width: 180px;
       }
+
+      .applications-page__program-filter {
+        flex-basis: 130px;
+        width: 130px;
+      }
     }
 
     &__pagination {
@@ -239,6 +251,7 @@
   }
 }
 
+// Compact tablet layout
 @media (max-width: 900px) {
   .applications-page {
     &__stats {
@@ -252,12 +265,46 @@
     }
 
     &__filters {
+      width: 100%;
+
       input,
       select {
         flex: 1;
         width: 100%;
         min-width: 0;
       }
+
+      .applications-page__program-filter {
+        flex: 0 0 130px;
+        width: 130px;
+      }
+    }
+  }
+}
+
+// Compact layout for shorter laptop screens.
+@media (max-height: 800px) and (min-width: 641px) {
+  .applications-page {
+    &__heading {
+      margin-bottom: 12px;
+
+      h1 {
+        margin-bottom: 4px;
+        font-size: 22px;
+      }
+    }
+
+    &__stats {
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    &__content-header {
+      padding: 12px 16px;
+    }
+
+    &__pagination {
+      padding: 8px 16px;
     }
   }
 }
@@ -302,12 +349,25 @@
     }
 
     &__filters {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
 
       input,
       select {
+        width: 100%;
+        min-width: 0;
         padding: 8px;
         font-size: 12px;
+      }
+
+      input {
+        grid-column: 1 / -1;
+      }
+
+      .applications-page__program-filter {
+        width: 100%;
+        min-width: 0;
       }
     }
 
@@ -329,14 +389,20 @@
   }
 }
 
+// Narrow mobile screens
 @media (max-width: 480px) {
   .applications-page {
     &__filters {
-      flex-direction: column;
-      align-items: stretch;
+      gap: 6px;
 
       input,
       select {
+        width: 100%;
+        min-width: 0;
+        padding: 8px;
+      }
+
+      .applications-page__program-filter {
         width: 100%;
         min-width: 0;
       }
@@ -344,33 +410,7 @@
   }
 }
 
-// Compact layout for shorter laptop screens.
-@media (max-height: 800px) {
-  .applications-page {
-    &__heading {
-      margin-bottom: 12px;
-
-      h1 {
-        margin-bottom: 4px;
-        font-size: 22px;
-      }
-    }
-
-    &__stats {
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    &__content-header {
-      padding: 12px 16px;
-    }
-
-    &__pagination {
-      padding: 8px 16px;
-    }
-  }
-}
-
+// Reduce unnecessary animations.
 @media (prefers-reduced-motion: reduce) {
   .applications-page {
     &__pagination button {
