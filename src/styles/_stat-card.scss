@@ -1,8 +1,11 @@
 .stat-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 24px;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+  padding: 16px 20px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   background-color: #ffffff;
@@ -11,12 +14,16 @@
     color: #64748b;
     font-size: 13px;
     font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
   }
 
   &__value {
     color: #0f172a;
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 700;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
   }
 
   &--submitted {
@@ -29,5 +36,50 @@
 
   &--approved {
     border-left: 4px solid #22c55e;
+  }
+}
+
+// Tablet layout
+@media (max-width: 1024px) {
+  .stat-card {
+    gap: 6px;
+    padding: 14px 16px;
+
+    &__label {
+      font-size: 12px;
+    }
+
+    &__value {
+      font-size: 26px;
+    }
+  }
+}
+
+// Mobile layout
+@media (max-width: 640px) {
+  .stat-card {
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 10px;
+
+    &__label {
+      font-size: 11px;
+    }
+
+    &__value {
+      font-size: 22px;
+    }
+  }
+}
+
+// Compact layout for shorter laptop screens
+@media (max-height: 800px) {
+  .stat-card {
+    gap: 5px;
+    padding: 12px 16px;
+
+    &__value {
+      font-size: 24px;
+    }
   }
 }
