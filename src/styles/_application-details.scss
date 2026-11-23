@@ -1,0 +1,939 @@
+.application-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #111827;
+
+  // Application header
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 20px;
+    padding-bottom: 20px;
+
+    > div {
+      min-width: 0;
+    }
+
+    h2 {
+      margin: 4px 0;
+      font-size: 23px;
+      font-weight: 700;
+      color: #111827;
+    }
+  }
+
+  &__reference {
+    margin: 0;
+    padding-top: 6px;
+    font-size: 13px;
+    color: #6b7280;
+    overflow-wrap: anywhere;
+  }
+
+  // Application processing status
+  &__status {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    max-width: 45%;
+    padding: 4px 9px;
+    margin-top: 22px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
+    text-align: center;
+    overflow-wrap: anywhere;
+
+    &--submitted {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    &--under_review {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    &--additional_information_required {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    &--approved {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    &--rejected {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    &--cancelled {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+  }
+
+  // Application overview
+  &__overview {
+    flex-shrink: 0;
+    padding: 20px 0 22px;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+    row-gap: 18px;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+
+    span {
+      font-size: 11px;
+      font-weight: 400;
+      color: #6b7280;
+    }
+
+    strong {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.5;
+      color: #111827;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+  }
+
+  // Application information container
+  &__content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+    gap: 12px;
+    padding-top: 20px;
+  }
+
+  // Navigation tabs
+  &__tabs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  &__tab {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 400;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+            background 0.15s ease,
+            color 0.15s ease,
+            border-color 0.15s ease;
+
+    &:hover {
+      background: #f9fafb;
+      color: #111827;
+      border-color: #9ca3af;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    &--active {
+      border-color: #2563eb;
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 500;
+
+      &:hover {
+        border-color: #1d4ed8;
+        background: #1d4ed8;
+        color: #ffffff;
+      }
+    }
+  }
+
+  // Internally scrollable application information panel
+  &__panel {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+
+    &:focus-visible {
+      outline: 2px solid #93c5fd;
+      outline-offset: -2px;
+    }
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: #cbd5e1;
+
+      &:hover {
+        background: #94a3b8;
+      }
+    }
+
+    h3 {
+      margin: 0 0 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #6b7280;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  // Application information sections
+  &__sections {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 16px;
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &:not(:last-child) {
+      padding-bottom: 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    h3 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+  }
+
+  &__section-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 20px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+  }
+
+  &__section-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+
+    > div {
+      min-width: 0;
+    }
+
+    h3 {
+      margin: 0 0 5px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+      overflow-wrap: anywhere;
+    }
+
+    p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #6b7280;
+    }
+  }
+
+  // Individual information fields
+  &__field-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+    padding: 14px 16px;
+    border: 1px solid #edf0f4;
+    border-radius: 9px;
+    background: #f8fafc;
+
+    &--income {
+      border-color: #dbeafe;
+      background: #eff6ff;
+
+      .application-details__field-value {
+        font-size: 17px;
+        font-weight: 700;
+        color: #1d4ed8;
+      }
+    }
+  }
+
+  &__field-label {
+    max-width: 100%;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #64748b;
+    overflow-wrap: anywhere;
+  }
+
+  &__field-value {
+    max-width: 100%;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #111827;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+
+    &--missing {
+      font-weight: 400;
+      font-style: italic;
+      color: #9ca3af;
+    }
+  }
+
+  // Boolean field values
+  &__value-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+
+    &--yes {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    &--no {
+      background: #f1f5f9;
+      color: #475569;
+    }
+  }
+
+  // Residential address
+  &__address {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    background: #eff6ff;
+
+    span {
+      font-size: 11px;
+      font-weight: 600;
+      color: #1d4ed8;
+    }
+
+    strong {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.7;
+      color: #1e3a8a;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  // Record count
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  // Household members, caregivers, welfare assistance
+  // and supporting document records
+  &__records {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  &__record {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+
+    h4 {
+      margin: 0 0 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #111827;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__record-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+
+    > div:last-child {
+      min-width: 0;
+    }
+
+    h4 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+      overflow-wrap: anywhere;
+    }
+
+    p {
+      margin: 0;
+      font-size: 12px;
+      color: #6b7280;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__record-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  // Preliminary eligibility assessment
+  &__eligibility-result {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    background: #eff6ff;
+
+    span {
+      font-size: 12px;
+      font-weight: 500;
+      color: #1d4ed8;
+    }
+
+    strong {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.4;
+      color: #1e40af;
+      overflow-wrap: anywhere;
+    }
+
+    p {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #475569;
+    }
+
+    &--potentially_eligible {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+
+      span,
+      strong {
+        color: #15803d;
+      }
+    }
+
+    &--potentially_ineligible {
+      border-color: #fecaca;
+      background: #fef2f2;
+
+      span,
+      strong {
+        color: #b91c1c;
+      }
+    }
+
+    &--insufficient_information {
+      border-color: #fde68a;
+      background: #fffbeb;
+
+      span,
+      strong {
+        color: #b45309;
+      }
+    }
+
+    &--manual_verification {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+
+      span,
+      strong {
+        color: #1d4ed8;
+      }
+    }
+  }
+
+  // Empty and unavailable information
+  &__empty {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #9ca3af;
+  }
+
+  &__empty-state {
+    padding: 24px;
+    border: 1px dashed #d1d5db;
+    border-radius: 10px;
+    background: #f8fafc;
+    text-align: center;
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    p {
+      margin: 0;
+      font-size: 12px;
+      color: #6b7280;
+    }
+  }
+
+  // Supporting document and eligibility notices
+  &__notice {
+    margin: 0 !important;
+    padding: 12px;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8 !important;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  // Fixed action footer
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 20px;
+  }
+
+  // Terminal application status message
+  &__final-status {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding-right: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #6b7280;
+    overflow-wrap: anywhere;
+  }
+
+  &__back,
+  &__update {
+    flex-shrink: 0;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+            background 0.15s ease,
+            border-color 0.15s ease;
+
+    &:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+  }
+
+  &__back {
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #374151;
+
+    &:hover {
+      background: #f3f4f6;
+      color: #111827;
+    }
+  }
+
+  &__update {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+
+    &:hover:not(:disabled) {
+      border-color: #1d4ed8;
+      background: #1d4ed8;
+    }
+
+    &:disabled {
+      border-color: #e2e8f0;
+      background: #e2e8f0;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+  }
+
+  // Tablet layout
+  @media (max-width: 1024px) {
+    padding: 18px;
+
+    &__header {
+      gap: 16px;
+      padding-bottom: 16px;
+    }
+
+    &__overview {
+      padding: 16px 0;
+    }
+
+    &__grid {
+      column-gap: 16px;
+      row-gap: 14px;
+    }
+
+    &__content {
+      padding-top: 16px;
+    }
+
+    &__panel {
+      padding: 16px;
+    }
+
+    &__section-card {
+      padding: 16px;
+    }
+
+    &__footer {
+      padding-top: 16px;
+    }
+  }
+
+  // Mobile layout with internal scrolling retained
+  @media (max-width: 600px) {
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+    padding: 12px;
+    border-radius: 12px;
+
+    &__header {
+      gap: 8px;
+      padding-bottom: 12px;
+
+      h2 {
+        margin: 0 0 4px;
+        font-size: 18px;
+      }
+    }
+
+    &__reference {
+      padding-top: 2px;
+      font-size: 11px;
+    }
+
+    &__status {
+      max-width: 45%;
+      margin-top: 2px;
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+
+    &__overview {
+      padding: 12px 0;
+
+      .application-details__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+    }
+
+    &__grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    &__field {
+      gap: 3px;
+
+      span {
+        font-size: 10px;
+      }
+
+      strong {
+        font-size: 12px;
+        line-height: 1.4;
+      }
+    }
+
+    &__content {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      gap: 10px;
+      padding-top: 12px;
+    }
+
+    // Horizontally scrollable tabs prevent the navigation
+    // from occupying too much vertical space.
+    &__tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+      gap: 6px;
+      padding: 3px;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    &__tab {
+      padding: 6px 11px;
+      font-size: 12px;
+    }
+
+    &__panel {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      padding: 10px;
+      scrollbar-gutter: auto;
+    }
+
+    &__sections {
+      gap: 12px;
+    }
+
+    &__section-card {
+      gap: 14px;
+      padding: 12px;
+    }
+
+    &__section-heading {
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-bottom: 12px;
+
+      h3 {
+        font-size: 14px;
+      }
+
+      p {
+        font-size: 11px;
+      }
+    }
+
+    &__field-card {
+      gap: 6px;
+      padding: 12px;
+    }
+
+    &__address {
+      padding: 12px;
+
+      strong {
+        font-size: 13px;
+      }
+    }
+
+    &__record {
+      padding: 12px;
+    }
+
+    &__record-heading {
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+    }
+
+    &__record-avatar {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
+    }
+
+    &__eligibility-result {
+      gap: 6px;
+      padding: 14px;
+
+      strong {
+        font-size: 17px;
+      }
+    }
+
+    &__empty-state {
+      padding: 16px;
+    }
+
+    &__footer {
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 12px;
+    }
+
+    &__final-status {
+      flex: 0 0 100%;
+      padding-right: 0;
+      font-size: 11px;
+    }
+
+    &__back,
+    &__update {
+      flex: 1;
+      min-width: 0;
+      padding: 9px 12px;
+      font-size: 12px;
+      text-align: center;
+      white-space: normal;
+    }
+  }
+
+  // Compact layout for shorter browser viewports
+  @media (max-height: 760px) {
+    padding: 12px;
+
+    &__header {
+      padding-bottom: 10px;
+
+      h2 {
+        font-size: 20px;
+      }
+    }
+
+    &__overview {
+      padding: 10px 0;
+    }
+
+    &__overview &__grid {
+      row-gap: 8px;
+    }
+
+    &__content {
+      gap: 8px;
+      padding-top: 10px;
+    }
+
+    &__panel {
+      padding: 12px;
+    }
+
+    &__footer {
+      padding-top: 10px;
+    }
+  }
+
+  // Accessibility
+  @media (prefers-reduced-motion: reduce) {
+    &__tab,
+    &__back,
+    &__update {
+      transition: none;
+    }
+  }
+}
