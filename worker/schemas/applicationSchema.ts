@@ -11,23 +11,44 @@ const baseApplicationSchema = z.object({
 });
 
 export const createApplicationSchema = z.discriminatedUnion("programCode", [
-    baseApplicationSchema.extend({
-      programCode: z.literal("BWE"),
-      applicationData: bweApplicationDataSchema,
-    }),
-    baseApplicationSchema.extend({
-      programCode: z.literal("BA"),
-      applicationData: baApplicationDataSchema,
-    }),
-    baseApplicationSchema.extend({
-      programCode: z.literal("BAT"),
-      applicationData: batApplicationDataSchema,
-    }),
-    baseApplicationSchema.extend({
-      programCode: z.literal("BPT"),
-      applicationData: bptApplicationDataSchema,
-    }),
-]);
+  baseApplicationSchema.extend({
+    programCode: z.literal("BWE"),
+    applicationData: bweApplicationDataSchema,
+  }),
+  baseApplicationSchema.extend({
+    programCode: z.literal("BA"),
+    applicationData: baApplicationDataSchema,
+  }),
+  baseApplicationSchema.extend({
+    programCode: z.literal("BAT"),
+    applicationData: batApplicationDataSchema,
+  }),
+  baseApplicationSchema.extend({
+    programCode: z.literal("BPT"),
+    applicationData: bptApplicationDataSchema,
+  }),
+]).superRefine((data, ctx) => {
+  const applicant = data.applicationData.applicant;
+
+  if (data.applicantName !== applicant.fullName) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["applicantName"],
+      message: "The applicant name must match the name in the application data",
+    });
+  }
+
+  if (
+      data.applicantIdentificationNo !== undefined &&
+      data.applicantIdentificationNo !== applicant.identificationNo
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["applicantIdentificationNo"],
+      message: "The applicant identification number must match the identification number in the application data",
+    });
+  }
+});
 
 export const updateApplicationStatusSchema = z.object({
   status: z.enum([
