@@ -2,107 +2,279 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 20px 32px;
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+  gap: 20px;
+  padding: 12px 32px;
+  box-sizing: border-box;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
 
   &__brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    min-width: 0;
+    gap: 12px;
   }
 
   &__brand-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     background-color: #1e40af;
     color: #ffffff;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
   }
 
   &__brand-info {
+    min-width: 0;
+
     h1 {
       margin: 0;
-      font-size: 18px;
+      color: #0f172a;
+      font-size: 17px;
       font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -0.2px;
+      overflow-wrap: anywhere;
     }
 
     span {
       display: block;
-      margin-top: 4px;
+      margin-top: 3px;
       color: #64748b;
-      font-size: 13px;
+      font-size: 12px;
+      line-height: 1.4;
     }
   }
 
   &__admin {
     display: flex;
     align-items: center;
-    gap: 12px;
+    flex-shrink: 0;
+    min-width: 0;
+    gap: 10px;
+  }
+
+  // Deployment information
+  &__deployment {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 3px;
+    margin-right: 10px;
+    padding-right: 20px;
+    border-right: 1px solid #e2e8f0;
+  }
+
+  &__deployment-label {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  &__deployment-time {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   &__avatar {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background-color: #dbeafe;
     color: #1e40af;
+    font-size: 14px;
     font-weight: 700;
   }
 
   &__admin-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    min-width: 0;
+    gap: 3px;
   }
 
   &__admin-name {
-    font-size: 14px;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #0f172a;
+    font-size: 13px;
     font-weight: 600;
+    line-height: 1.4;
   }
 
   &__admin-role {
     color: #64748b;
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 1.4;
   }
 
   &__logout {
-    padding: 10px 16px;
-    margin-left: 12px;
+    flex-shrink: 0;
+    padding: 8px 14px;
+    margin-left: 8px;
     border: 1px solid #cbd5e1;
     border-radius: 8px;
     background-color: #ffffff;
     color: #334155;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+            background-color 0.15s ease,
+            border-color 0.15s ease;
 
     &:hover:not(:disabled) {
+      border-color: #94a3b8;
       background-color: #f1f5f9;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      border-color: #e2e8f0;
+      background-color: #f8fafc;
+      color: #94a3b8;
+      cursor: not-allowed;
     }
   }
 }
 
+// Tablet layout
+@media (max-width: 1024px) {
+  .header {
+    padding: 12px 24px;
+    gap: 16px;
+
+    &__deployment {
+      margin-right: 6px;
+      padding-right: 14px;
+    }
+
+    &__deployment-time {
+      font-size: 11px;
+    }
+
+    &__admin-name {
+      max-width: 120px;
+    }
+  }
+}
+
+// Compact tablet layout
+@media (max-width: 800px) {
+  .header {
+    &__admin-info {
+      display: none;
+    }
+
+    &__deployment {
+      margin-right: 4px;
+      padding-right: 10px;
+    }
+  }
+}
+
+// Mobile layout
 @media (max-width: 640px) {
   .header {
-    padding: 16px;
-    flex-wrap: wrap;
+    padding: 10px 12px;
+    gap: 10px;
+    flex-wrap: nowrap;
 
-    &__brand-info h1 {
-      font-size: 16px;
+    &__brand {
+      gap: 8px;
+    }
+
+    &__brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    &__brand-info {
+      h1 {
+        font-size: 14px;
+      }
+
+      span {
+        font-size: 10px;
+      }
     }
 
     &__admin {
-      width: 100%;
-      justify-content: flex-end;
+      width: auto;
+      gap: 8px;
+    }
+
+    &__deployment {
+      display: none;
+    }
+
+    &__avatar {
+      width: 30px;
+      height: 30px;
+      font-size: 12px;
+    }
+
+    &__admin-info {
+      display: none;
+    }
+
+    &__logout {
+      margin-left: 0;
+      padding: 7px 10px;
+      font-size: 11px;
+    }
+  }
+}
+
+// Narrow mobile screens
+@media (max-width: 360px) {
+  .header {
+    &__avatar {
+      display: none;
+    }
+  }
+}
+
+// Short laptop screens
+@media (max-height: 800px) and (min-width: 641px) {
+  .header {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header {
+    &__logout {
+      transition: none;
     }
   }
 }
