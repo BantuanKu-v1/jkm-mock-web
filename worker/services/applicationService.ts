@@ -5,6 +5,25 @@ import {
   type JkmApplicationStatus,
 } from "../types/application";
 
+// Normalize database timestamps to ISO 8601 UTC
+export function normalizeApplicationTimestamp(
+    value: string
+): string {
+  const timestamp = value.trim();
+
+  const normalized = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(timestamp)
+      ? `${timestamp.replace(" ", "T")}Z`
+      : timestamp;
+
+  const date = new Date(normalized);
+
+  if (!Number.isFinite(date.getTime())) {
+    throw new Error("Invalid application timestamp");
+  }
+
+  return date.toISOString();
+}
+
 // Retrieve an application using its external application ID
 export async function getApplicationByExternalId(
     db: D1Database,
@@ -55,16 +74,34 @@ export async function getProgramByCode(
       .first<{ id: string; code: string }>();
 }
 
+// Retrieve a JKM program regardless of its active status
+export async function getProgramById(
+    db: D1Database,
+    programId: string
+): Promise<{ id: string; code: string } | null> {
+  return db
+      .prepare(`
+        SELECT id, code
+        FROM jkm_programs
+        WHERE id = ?
+      `)
+      .bind(programId)
+      .first<{ id: string; code: string }>();
+}
+
 // Create a new JKM application
 export async function createApplication(
     db: D1Database,
     clientId: string,
     data: CreateApplicationPayload
 ): Promise<DbApplication> {
-  const program = await getProgramByCode(db, data.programCode);
+  const program = await getProgramByCode(
+      db,
+      data.programCode
+  );
 
   if (!program) {
-    throw new Error("JKM program not found");
+    throw new Error("JKM program not found or inactive");
   }
 
   const id = crypto.randomUUID();
@@ -76,9 +113,12 @@ export async function createApplication(
       .slice(0, 12)
       .toUpperCase()}`;
 
-  const applicationData = JSON.stringify(data.applicationData);
+  const applicationData = JSON.stringify(
+      data.applicationData
+  );
 
   const historyId = crypto.randomUUID();
+  const timestamp = new Date().toISOString();
 
   await db.batch([
     db.prepare(`
@@ -90,8 +130,20 @@ export async function createApplication(
         reference_no,
         applicant_name,
         applicant_identification_no,
-        application_data
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        application_data,
+        status,
+        submitted_at,
+        updated_at
+      )
+      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      WHERE EXISTS (
+        SELECT 1
+        FROM jkm_programs
+        WHERE id = ?
+          AND is_active = 1
+      )
+      ON CONFLICT (source_system, external_reference)
+      DO NOTHING
     `).bind(
         id,
         program.id,
@@ -100,8 +152,13 @@ export async function createApplication(
         referenceNo,
         data.applicantName,
         data.applicantIdentificationNo ?? null,
-        applicationData
+        applicationData,
+        "submitted",
+        timestamp,
+        timestamp,
+        program.id
     ),
+
     db.prepare(`
       INSERT INTO jkm_application_status_history (
         id,
@@ -109,25 +166,48 @@ export async function createApplication(
         previous_status,
         new_status,
         changed_by,
-        remarks
-      ) VALUES (?, ?, ?, ?, ?, ?)
+        remarks,
+        changed_at
+      )
+      SELECT ?, id, ?, ?, ?, ?, ?
+      FROM jkm_applications
+      WHERE id = ?
+        AND source_system = ?
     `).bind(
         historyId,
-        id,
         null,
         "submitted",
         clientId,
-        "Application submitted"
+        "Application submitted",
+        timestamp,
+        id,
+        clientId
     ),
   ]);
 
-  const application = await getApplicationById(db, clientId, id);
+  // Retrieve the application created by this request
+  const application = await getApplicationById(
+      db,
+      clientId,
+      id
+  );
 
-  if (!application) {
-    throw new Error("Failed to retrieve the created application");
+  if (application) {
+    return application;
   }
 
-  return application;
+  // Another request may have created the same application
+  const existing = await getApplicationByExternalId(
+      db,
+      clientId,
+      data.externalApplicationId
+  );
+
+  if (existing) {
+    return existing;
+  }
+
+  throw new Error("Failed to create or retrieve application");
 }
 
 // Retrieve all submitted JKM applications for the admin dashboard
@@ -136,12 +216,12 @@ export async function getAllApplications(
 ): Promise<DbApplication[]> {
   const result = await db
       .prepare(`
-          SELECT
-              a.*,
-              p.code AS program_code
-          FROM jkm_applications a
-          JOIN jkm_programs p ON a.program_id = p.id
-          ORDER BY a.submitted_at DESC, a.id DESC
+        SELECT
+            a.*,
+            p.code AS program_code
+        FROM jkm_applications a
+        JOIN jkm_programs p ON a.program_id = p.id
+        ORDER BY julianday(a.submitted_at) DESC, a.id DESC
       `)
       .all<DbApplication>();
 
@@ -169,23 +249,11 @@ export async function updateApplicationStatus(
     applicationId: string,
     status: JkmApplicationStatus
 ): Promise<DbApplication | null> {
-  const application = await getAdminApplicationById(db, applicationId);
-
-  if (!application) {
-    return null;
-  }
-
-  if (application.status === status) {
-    return application;
-  }
+  const timestamp = new Date().toISOString();
+  const historyId = crypto.randomUUID();
 
   await db.batch([
-    db.prepare(`
-      UPDATE jkm_applications
-      SET status = ?,
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).bind(status, applicationId),
+    // Record the current status before updating the application
     db.prepare(`
       INSERT INTO jkm_application_status_history (
         id,
@@ -193,17 +261,47 @@ export async function updateApplicationStatus(
         previous_status,
         new_status,
         changed_by,
-        remarks
-      ) VALUES (?, ?, ?, ?, ?, ?)
+        remarks,
+        changed_at
+      )
+      SELECT
+        ?,
+        id,
+        status,
+        ?,
+        ?,
+        ?,
+        ?
+      FROM jkm_applications
+      WHERE id = ?
+        AND status <> ?
     `).bind(
-        crypto.randomUUID(),
-        applicationId,
-        application.status,
+        historyId,
         status,
         "admin",
-        null
+        null,
+        timestamp,
+        applicationId,
+        status
+    ),
+
+    // Update only when the application status changes
+    db.prepare(`
+      UPDATE jkm_applications
+      SET status = ?,
+          updated_at = ?
+      WHERE id = ?
+        AND status <> ?
+    `).bind(
+        status,
+        timestamp,
+        applicationId,
+        status
     ),
   ]);
 
-  return getAdminApplicationById(db, applicationId);
+  return getAdminApplicationById(
+      db,
+      applicationId
+  );
 }
