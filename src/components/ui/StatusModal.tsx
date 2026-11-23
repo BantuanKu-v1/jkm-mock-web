@@ -19,78 +19,44 @@ type StatusModalProps = {
   ) => Promise<void>;
 };
 
-function parseApplicationData(data: string): Record<string, unknown> {
-  try {
-    const parsed: unknown = JSON.parse(data);
-
-    if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
-      return parsed as Record<string, unknown>;
-    }
-
-    return { value: parsed };
-  } catch {
-    return { raw_data: data };
-  }
-}
-
-function formatFieldName(field: string): string {
-  return field
-      .replace(/([A-Z])/g, " $1")
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (character) => character.toUpperCase())
-      .trim();
-}
-
-function formatFieldValue(value: unknown): string {
-  if (value === null || value === undefined) {
-    return "-";
-  }
-
-  if (typeof value === "boolean") {
-    return value ? "Yes" : "No";
-  }
-
-  if (typeof value === "object") {
-    return JSON.stringify(value, null, 2);
-  }
-
-  return String(value);
-}
-
-function getProgramLabel(programId: string): string {
-  if (Object.prototype.hasOwnProperty.call(programLabels, programId)) {
-    return programLabels[programId as keyof typeof programLabels];
-  }
-
-  return programId;
-}
-
 export default function StatusModal({
   application,
   onClose,
-  onUpdateStatus,
+  onUpdateStatus
 }: StatusModalProps) {
-  const [selectedStatus, setSelectedStatus] = useState<ApplicationStatus | "">("");
+  const [selectedStatus, setSelectedStatus] =
+      useState<ApplicationStatus | "">("");
+
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState("");
 
-  const availableStatuses = allowedStatusTransitions[application.status];
-  const applicationData = parseApplicationData(application.application_data);
+  const availableStatuses =
+      allowedStatusTransitions[application.status];
 
   const handleUpdate = async () => {
-    if (!selectedStatus || isUpdating) return;
+    if (
+        !selectedStatus ||
+        isUpdating ||
+        !availableStatuses.includes(selectedStatus)
+    ) {
+      return;
+    }
 
     setIsUpdating(true);
     setError("");
 
     try {
-      await onUpdateStatus(application.id, selectedStatus);
+      await onUpdateStatus(
+          application.id,
+          selectedStatus
+      );
+
       onClose();
     } catch (error) {
       setError(
           error instanceof Error
               ? error.message
-              : "Failed to update application status"
+              : "Failed to update application status."
       );
     } finally {
       setIsUpdating(false);
@@ -104,10 +70,16 @@ export default function StatusModal({
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener(
+        "keydown",
+        handleKeyDown
+    );
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener(
+          "keydown",
+          handleKeyDown
+      );
     };
   }, [onClose, isUpdating]);
 
@@ -115,7 +87,10 @@ export default function StatusModal({
       <div
           className="status-modal"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !isUpdating) {
+            if (
+                event.target === event.currentTarget &&
+                !isUpdating
+            ) {
               onClose();
             }
           }}
@@ -129,11 +104,12 @@ export default function StatusModal({
           <div className="status-modal__header">
             <div>
               <h2 id="status-modal-title">
-                Application Details
+                Update Application Status
               </h2>
 
               <p>
-                {application.reference_no || application.id}
+                {application.reference_no ||
+                    application.id}
               </p>
             </div>
 
@@ -155,61 +131,39 @@ export default function StatusModal({
               <div className="status-modal__details">
                 <div>
                   <span>Applicant Name</span>
-                  <strong>{application.applicant_name}</strong>
+
+                  <strong>
+                    {application.applicant_name}
+                  </strong>
                 </div>
 
                 <div>
                   <span>Identification No.</span>
+
                   <strong>
-                    {application.applicant_identification_no || "-"}
+                    {application.applicant_identification_no ||
+                        "-"}
                   </strong>
                 </div>
 
                 <div>
                   <span>Program</span>
+
                   <strong>
-                    {getProgramLabel(application.program_code)}
+                    {programLabels[
+                        application.program_code
+                        ] || application.program_code}
                   </strong>
                 </div>
 
                 <div>
-                  <span>Source System</span>
-                  <strong>{application.source_system}</strong>
-                </div>
-
-                <div>
-                  <span>External Reference</span>
-                  <strong>{application.external_reference}</strong>
-                </div>
-
-                <div>
                   <span>Current Status</span>
-                  <StatusBadge status={application.status} />
+
+                  <StatusBadge
+                      status={application.status}
+                  />
                 </div>
               </div>
-            </section>
-
-            <section className="status-modal__section">
-              <h3>Submitted Information</h3>
-
-              {Object.keys(applicationData).length === 0 ? (
-                  <p className="status-modal__empty">
-                    No additional application information provided.
-                  </p>
-              ) : (
-                  <div className="status-modal__submitted-data">
-                    {Object.entries(applicationData).map(([key, value]) => (
-                        <div
-                            key={key}
-                            className="status-modal__data-row"
-                        >
-                          <span>{formatFieldName(key)}</span>
-
-                          <pre>{formatFieldValue(value)}</pre>
-                        </div>
-                    ))}
-                  </div>
-              )}
             </section>
 
             <section className="status-modal__section">
@@ -217,8 +171,8 @@ export default function StatusModal({
 
               {availableStatuses.length === 0 ? (
                   <p className="status-modal__empty">
-                    This application has reached a final status and
-                    cannot be updated.
+                    This application has reached a final
+                    status and cannot be updated.
                   </p>
               ) : (
                   <div className="status-modal__update">
@@ -229,28 +183,44 @@ export default function StatusModal({
                     <select
                         id="new-status"
                         value={selectedStatus}
-                        onChange={(event) =>
-                            setSelectedStatus(
-                                event.target.value as ApplicationStatus | ""
-                            )
-                        }
+                        onChange={(event) => {
+                          setSelectedStatus(
+                              event.target.value as
+                                  | ApplicationStatus
+                                  | ""
+                          );
+
+                          setError("");
+                        }}
                         disabled={isUpdating}
                     >
                       <option value="">
                         Select a status
                       </option>
 
-                      {availableStatuses.map((status) => (
-                          <option key={status} value={status}>
-                            {applicationStatusLabels[status]}
-                          </option>
-                      ))}
+                      {availableStatuses.map(
+                          (status) => (
+                              <option
+                                  key={status}
+                                  value={status}
+                              >
+                                {
+                                  applicationStatusLabels[
+                                      status
+                                      ]
+                                }
+                              </option>
+                          )
+                      )}
                     </select>
                   </div>
               )}
 
               {error && (
-                  <div className="status-modal__error" role="alert">
+                  <div
+                      className="status-modal__error"
+                      role="alert"
+                  >
                     {error}
                   </div>
               )}
@@ -264,7 +234,7 @@ export default function StatusModal({
                 onClick={onClose}
                 disabled={isUpdating}
             >
-              Close
+              Cancel
             </button>
 
             {availableStatuses.length > 0 && (
@@ -272,9 +242,17 @@ export default function StatusModal({
                     type="button"
                     className="status-modal__submit"
                     onClick={handleUpdate}
-                    disabled={!selectedStatus || isUpdating}
+                    disabled={
+                        !selectedStatus ||
+                        isUpdating ||
+                        !availableStatuses.includes(
+                            selectedStatus
+                        )
+                    }
                 >
-                  {isUpdating ? "Updating..." : "Update Status"}
+                  {isUpdating
+                      ? "Updating..."
+                      : "Update Status"}
                 </button>
             )}
           </div>
