@@ -1,0 +1,122 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-color: #f8fafc;
+  color: #0f172a;
+  color-scheme: light;
+
+  // Keep the header visible at all times.
+  > .header {
+    flex-shrink: 0;
+  }
+
+  // Occupy all remaining viewport space.
+  &__content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    min-width: 0;
+    margin: 0;
+    padding: 24px 32px;
+    overflow: hidden;
+    box-sizing: border-box;
+
+    > .applications-page,
+    > .application-details-page {
+      flex: 1 1 0;
+      width: 100%;
+      height: auto;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+
+  .app-message {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    padding: 16px 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background-color: #ffffff;
+    color: #475569;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+
+    p {
+      margin: 0;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 8px 16px;
+      border: 1px solid #1e40af;
+      border-radius: 8px;
+      background-color: #1e40af;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #1d4ed8;
+      }
+
+      &:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  .app-message[role="alert"] {
+    border-color: #fecaca;
+    background-color: #fef2f2;
+    color: #b91c1c;
+  }
+}
+
+// Tablet layout
+@media (max-width: 1024px) {
+  .app-layout {
+    &__content {
+      padding: 20px 24px;
+    }
+  }
+}
+
+// Mobile layout
+@media (max-width: 640px) {
+  .app-layout {
+    &__content {
+      padding: 12px;
+    }
+
+    .app-message {
+      margin-bottom: 8px;
+      padding: 12px;
+    }
+  }
+}
+
+// Short laptop screens
+@media (max-height: 800px) {
+  .app-layout {
+    &__content {
+      padding-top: 14px;
+      padding-bottom: 14px;
+    }
+  }
+}
