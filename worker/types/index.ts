@@ -8,6 +8,8 @@ export type AppEnv = {
     ADMIN_USERNAME: string;
     ADMIN_PASSWORD: string;
     PUBLIC_API_RATE_LIMITER: RateLimit;
+    BANTUANKU_WEBHOOK_URL: string;
+    JKM_WEBHOOK_SECRET: string;
   };
   Variables: {
     clientId: string;
