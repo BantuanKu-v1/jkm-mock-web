@@ -81,6 +81,11 @@ async function expectInvalidApplication(payload) {
 
     const error = assertErrorResponse(response, 400);
 
+    assert.equal(
+        error.message,
+        "Invalid application data"
+    );
+
     assert.ok(
         error.errors !== undefined,
         "Validation errors should include error details"
@@ -90,7 +95,15 @@ async function expectInvalidApplication(payload) {
         payload.externalApplicationId
     );
 
-    assertErrorResponse(recoveryResponse, 404);
+    const recoveryError = assertErrorResponse(
+        recoveryResponse,
+        404
+    );
+
+    assert.equal(
+        recoveryError.message,
+        "Application not found"
+    );
 
     return error;
 }
@@ -354,6 +367,14 @@ describe("JKM Mock API - Common Application Validation", {
     );
 
     validationTest(
+        "should reject unknown top-level application fields",
+        createBaApplicationPayload,
+        (payload) => {
+            payload.unknownField = true;
+        }
+    );
+
+    validationTest(
         "should reject unknown nested applicant fields",
         createBaApplicationPayload,
         (payload) => {
@@ -399,6 +420,11 @@ describe("JKM Mock API - Common Application Validation", {
         const body = await response.json();
 
         assert.equal(body.success, false);
+
+        assert.equal(
+            body.message,
+            "Invalid JSON request body"
+        );
     });
 });
 
@@ -988,6 +1014,51 @@ describe("JKM Mock API - Submission Reliability", {
         assertSameApplication(first, duplicate);
     });
 
+    it("should return the original application when JSON properties are reordered", async () => {
+        const payload = createBaApplicationPayload();
+
+        const first = await expectValidApplication(payload);
+
+        function reverseObjectProperties(value) {
+            if (Array.isArray(value)) {
+                return value.map(reverseObjectProperties);
+            }
+
+            if (value !== null && typeof value === "object") {
+                return Object.fromEntries(
+                    Object.entries(value)
+                        .reverse()
+                        .map(([key, item]) => [
+                            key,
+                            reverseObjectProperties(item),
+                        ])
+                );
+            }
+
+            return value;
+        }
+
+        const reorderedPayload = reverseObjectProperties(
+            payload
+        );
+
+        assert.deepEqual(reorderedPayload, payload);
+
+        const response = await submitApplication(
+            reorderedPayload
+        );
+
+        const duplicate = assertSubmissionResponse(
+            response,
+            payload.programCode,
+            200
+        );
+
+        assertSameApplication(first, duplicate);
+
+        assert.equal(duplicate.status, "submitted");
+    });
+
     it("should reject a conflicting duplicate submission", async () => {
         const payload = createBaApplicationPayload();
 
@@ -1250,7 +1321,12 @@ describe("JKM Mock API - Application Recovery and Status", {
             `test-nonexistent-${randomUUID()}`
         );
 
-        assertErrorResponse(response, 404);
+        const error = assertErrorResponse(response, 404);
+
+        assert.equal(
+            error.message,
+            "Application not found"
+        );
     });
 
     it("should return 404 for a nonexistent application ID", async () => {
