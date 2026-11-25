@@ -9,6 +9,9 @@ import {
   getAdminApplicationById,
   updateApplicationStatus,
 } from "../services/applicationService";
+import {
+  sendApplicationStatusWebhook,
+} from "../services/webhookService";
 
 const admin = new Hono<AppEnv>();
 
@@ -153,10 +156,32 @@ admin.patch("/applications/:id/status", async (c) => {
       );
     }
 
+    // Update the application only if its current status and timestamp still match the previously retrieved record
     const updatedApplication = await updateApplicationStatus(
         c.env.jkm_mock_db,
         applicationId,
-        newStatus
+        currentStatus,
+        newStatus,
+        application.updated_at
+    );
+
+    // Handle concurrent or outdated status update requests
+    if (!updatedApplication) {
+      return c.json(
+          {
+            success: false,
+            message: "Application status has changed. Please refresh and try again.",
+          },
+          409
+      );
+    }
+
+    // Notify BantuanKu asynchronously after the successful application status and status history update
+    c.executionCtx.waitUntil(
+        sendApplicationStatusWebhook(
+            c.env,
+            updatedApplication
+        )
     );
 
     return c.json({
