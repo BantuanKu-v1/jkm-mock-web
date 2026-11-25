@@ -148,7 +148,10 @@ async function transitionApplication(
     application,
     newStatus
 ) {
-    const { confirmation } = application;
+    const { payload, confirmation } = application;
+
+    const previousStatus =
+        await assertCurrentApplicationStatus(application);
 
     const response = await updateAdminApplicationStatus(
         confirmation.id,
@@ -165,13 +168,45 @@ async function transitionApplication(
     );
 
     assert.equal(
+        body.data.program_code,
+        payload.programCode
+    );
+
+    assert.equal(
         body.data.status,
         newStatus
     );
 
-    await assertCurrentApplicationStatus(
-        application,
-        newStatus
+    assert.equal(
+        body.data.reference_no,
+        confirmation.referenceNo
+    );
+
+    assert.equal(
+        body.data.external_reference,
+        payload.externalApplicationId
+    );
+
+    assert.equal(
+        body.data.submitted_at,
+        confirmation.submittedAt
+    );
+
+    const currentStatus =
+        await assertCurrentApplicationStatus(
+            application,
+            newStatus
+        );
+
+    assert.equal(
+        body.data.updated_at,
+        currentStatus.updatedAt
+    );
+
+    assert.ok(
+        Date.parse(currentStatus.updatedAt) >
+        Date.parse(previousStatus.updatedAt),
+        "Status update timestamps must strictly increase"
     );
 
     return body.data;
@@ -203,6 +238,36 @@ async function createApplicationAtStatus(
     );
 
     return application;
+}
+
+function assertConcurrentStatusUpdateResponses(responses) {
+    const statuses = responses
+        .map((response) => response.status)
+        .sort((first, second) => first - second);
+
+    assert.deepEqual(statuses, [200, 409]);
+
+    const successfulResponse = responses.find(
+        (response) => response.status === 200
+    );
+
+    const conflictingResponse = responses.find(
+        (response) => response.status === 409
+    );
+
+    const body = assertSuccessResponse(
+        successfulResponse,
+        200
+    );
+
+    assertErrorResponse(
+        conflictingResponse,
+        409
+    );
+
+    assert.ok(body.data);
+
+    return body.data;
 }
 
 describe("JKM Mock API - Admin Authentication", {
@@ -346,6 +411,21 @@ describe("JKM Mock API - Admin Application Retrieval", {
             retrievedApplication.status,
             "submitted"
         );
+
+        assert.equal(
+            retrievedApplication.program_code,
+            application.payload.programCode
+        );
+
+        assert.equal(
+            retrievedApplication.reference_no,
+            application.confirmation.referenceNo
+        );
+
+        assert.equal(
+            retrievedApplication.external_reference,
+            application.payload.externalApplicationId
+        );
     });
 
     const programmeScenarios = [
@@ -374,6 +454,16 @@ describe("JKM Mock API - Admin Application Retrieval", {
             assert.equal(
                 body.data.id,
                 confirmation.id
+            );
+
+            assert.equal(
+                body.data.program_code,
+                programCode
+            );
+
+            assert.equal(
+                body.data.submitted_at,
+                confirmation.submittedAt
             );
 
             assert.equal(
@@ -618,6 +708,38 @@ describe("JKM Mock API - Admin Status Validation", {
 
         assertErrorResponse(response, 404);
     });
+
+    it("should reject unknown status update fields", async () => {
+        const application = await createSubmittedApplication();
+
+        const response = await apiRequest(
+            `/admin/applications/${encodeURIComponent(
+                application.confirmation.id
+            )}/status`,
+            {
+                method: "PATCH",
+                admin: true,
+                body: {
+                    status: "under_review",
+                    unknownField: true,
+                },
+            }
+        );
+
+        const body = assertErrorResponse(response, 400);
+
+        assert.equal(
+            body.message,
+            "Invalid application status"
+        );
+
+        assert.ok(body.errors !== undefined);
+
+        await assertCurrentApplicationStatus(
+            application,
+            "submitted"
+        );
+    });
 });
 
 describe("JKM Mock API - Application Status Synchronization", {
@@ -683,9 +805,9 @@ describe("JKM Mock API - Application Status Synchronization", {
                 );
 
                 assert.ok(
-                    Date.parse(status.updatedAt) >=
+                    Date.parse(status.updatedAt) >
                     Date.parse(previousUpdatedAt),
-                    "Status update timestamps must not move backwards"
+                    "Status update timestamps must strictly increase"
                 );
 
                 const recoveryResponse = await recoverApplication(
@@ -789,6 +911,184 @@ describe("JKM Mock API - Application Status Synchronization", {
         assert.equal(
             recovered.status,
             "approved"
+        );
+    });
+});
+
+
+describe("JKM Mock API - Concurrent Admin Status Updates", {
+    timeout: TEST_TIMEOUT_MS,
+    concurrency: false,
+}, () => {
+    it("should allow only one concurrent conflicting terminal status update", async () => {
+        const application = await createApplicationAtStatus(
+            "under_review"
+        );
+
+        const { payload, confirmation } = application;
+
+        const previousStatus =
+            await assertCurrentApplicationStatus(
+                application,
+                "under_review"
+            );
+
+        const responses = await Promise.all([
+            updateAdminApplicationStatus(
+                confirmation.id,
+                "approved"
+            ),
+            updateAdminApplicationStatus(
+                confirmation.id,
+                "rejected"
+            ),
+        ]);
+
+        const updatedApplication =
+            assertConcurrentStatusUpdateResponses(responses);
+
+        assert.ok(
+            ["approved", "rejected"].includes(
+                updatedApplication.status
+            )
+        );
+
+        assert.equal(
+            updatedApplication.id,
+            confirmation.id
+        );
+
+        assert.equal(
+            updatedApplication.program_code,
+            payload.programCode
+        );
+
+        assert.equal(
+            updatedApplication.reference_no,
+            confirmation.referenceNo
+        );
+
+        assert.equal(
+            updatedApplication.external_reference,
+            payload.externalApplicationId
+        );
+
+        assert.equal(
+            updatedApplication.submitted_at,
+            confirmation.submittedAt
+        );
+
+        const finalStatus =
+            await assertCurrentApplicationStatus(
+                application,
+                updatedApplication.status
+            );
+
+        assert.equal(
+            finalStatus.updatedAt,
+            updatedApplication.updated_at
+        );
+
+        assert.ok(
+            Date.parse(finalStatus.updatedAt) >
+            Date.parse(previousStatus.updatedAt)
+        );
+
+        const recoveryResponse = await recoverApplication(
+            payload.externalApplicationId
+        );
+
+        const recovered = assertRecoveryResponse(
+            recoveryResponse,
+            payload.programCode,
+            payload.externalApplicationId
+        );
+
+        assertSameApplication(
+            confirmation,
+            recovered
+        );
+
+        assert.equal(
+            recovered.status,
+            finalStatus.status
+        );
+
+        assert.equal(
+            recovered.updatedAt,
+            finalStatus.updatedAt
+        );
+    });
+
+    it("should allow only one concurrent identical status update", async () => {
+        const application = await createSubmittedApplication();
+
+        const { payload, confirmation } = application;
+
+        const previousStatus =
+            await assertCurrentApplicationStatus(
+                application,
+                "submitted"
+            );
+
+        const responses = await Promise.all([
+            updateAdminApplicationStatus(
+                confirmation.id,
+                "under_review"
+            ),
+            updateAdminApplicationStatus(
+                confirmation.id,
+                "under_review"
+            ),
+        ]);
+
+        const updatedApplication =
+            assertConcurrentStatusUpdateResponses(responses);
+
+        assert.equal(
+            updatedApplication.id,
+            confirmation.id
+        );
+
+        assert.equal(
+            updatedApplication.program_code,
+            payload.programCode
+        );
+
+        assert.equal(
+            updatedApplication.status,
+            "under_review"
+        );
+
+        assert.equal(
+            updatedApplication.reference_no,
+            confirmation.referenceNo
+        );
+
+        assert.equal(
+            updatedApplication.external_reference,
+            payload.externalApplicationId
+        );
+
+        assert.equal(
+            updatedApplication.submitted_at,
+            confirmation.submittedAt
+        );
+
+        const finalStatus =
+            await assertCurrentApplicationStatus(
+                application,
+                "under_review"
+            );
+
+        assert.equal(
+            finalStatus.updatedAt,
+            updatedApplication.updated_at
+        );
+
+        assert.ok(
+            Date.parse(finalStatus.updatedAt) >
+            Date.parse(previousStatus.updatedAt)
         );
     });
 });
