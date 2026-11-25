@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE_URL = "/api/v1/admin/auth";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -16,7 +16,7 @@ export async function login(
     password: string
 ): Promise<void> {
   const response = await fetch(
-      `${API_BASE_URL}/api/v1/admin/auth/login`,
+      `${API_BASE_URL}/login`,
       {
         method: "POST",
         headers: {
@@ -40,7 +40,7 @@ export async function login(
 // Verify administrator session
 export async function checkSession(): Promise<string | null> {
   const response = await fetch(
-      `${API_BASE_URL}/api/v1/admin/auth/me`,
+      `${API_BASE_URL}/me`,
       {
         credentials: "include",
       }
@@ -62,7 +62,7 @@ export async function checkSession(): Promise<string | null> {
 // Log out JKM administrator
 export async function logout(): Promise<void> {
   const response = await fetch(
-      `${API_BASE_URL}/api/v1/admin/auth/logout`,
+      `${API_BASE_URL}/logout`,
       {
         method: "POST",
         credentials: "include",
