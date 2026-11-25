@@ -12,6 +12,26 @@ const adminAuth = new Hono<AppEnv>();
 const COOKIE_NAME = "jkm_admin_session";
 
 adminAuth.post("/login", async (c) => {
+  // Apply rate limiting to administrator login requests
+  const clientIp = c.req.header("CF-Connecting-IP") || "unknown";
+
+  const { success: allowed } =
+      await c.env.JKM_ADMIN_LOGIN_RATE_LIMITER.limit({
+        key: `admin-login:${clientIp}`,
+      });
+
+  if (!allowed) {
+    c.header("Retry-After", "60");
+
+    return c.json(
+        {
+          success: false,
+          message: "Too many login attempts. Please try again later.",
+        },
+        429
+    );
+  }
+
   let body: unknown;
 
   try {
