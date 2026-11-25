@@ -4,7 +4,7 @@ import type {
   ApplicationStatus,
 } from "../types/applications";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE_URL = "/api/v1/admin";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -49,7 +49,7 @@ async function apiRequest<T>(
 
 // Retrieve all JKM applications
 export async function getApplications(): Promise<Application[]> {
-  return apiRequest<Application[]>("/api/v1/admin/applications");
+  return apiRequest<Application[]>("/applications");
 }
 
 // Retrieve an individual JKM application
@@ -57,7 +57,7 @@ export async function getApplicationDetails(
     applicationId: string
 ): Promise<ApplicationDetails> {
   return apiRequest<ApplicationDetails>(
-      `/api/v1/admin/applications/${encodeURIComponent(applicationId)}`
+      `/applications/${encodeURIComponent(applicationId)}`
   );
 }
 
@@ -67,7 +67,7 @@ export async function updateApplicationStatus(
     newStatus: ApplicationStatus
 ): Promise<Application> {
   return apiRequest<Application>(
-      `/api/v1/admin/applications/${encodeURIComponent(applicationId)}/status`,
+      `/applications/${encodeURIComponent(applicationId)}/status`,
       {
         method: "PATCH",
         body: JSON.stringify({
