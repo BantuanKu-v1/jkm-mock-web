@@ -11,10 +11,12 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "db:migrate:local": "wrangler d1 migrations apply jkm-mock-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply jkm-mock-db --remote",
     "test": "node --env-file=.dev.vars --test --test-concurrency=1 tests/*.test.mjs",
     "test:applications": "node --env-file=.dev.vars --test tests/applications.test.mjs",
     "test:admin": "node --env-file=.dev.vars --test tests/admin.test.mjs",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "tail:api": "wrangler tail"
   },
   "dependencies": {
     "hono": "^4.13.13",
