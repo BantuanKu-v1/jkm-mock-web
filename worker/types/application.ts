@@ -60,6 +60,11 @@ export interface DbApplication {
   updated_at: string;
 }
 
+// Application record with programme information for admin access
+export interface DbAdminApplication extends DbApplication {
+  program_code: string;
+}
+
 export type CreateApplicationPayload = CreateApplicationRequest;
 export type CreateApplicationResult = DbApplication;
 export type ApplicationStatus = JkmApplicationStatus;
