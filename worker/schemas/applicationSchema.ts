@@ -4,7 +4,7 @@ import { baApplicationDataSchema } from "./applications/baSchema";
 import { batApplicationDataSchema } from "./applications/batSchema";
 import { bptApplicationDataSchema } from "./applications/bptSchema";
 
-const baseApplicationSchema = z.object({
+const baseApplicationSchema = z.strictObject({
   externalApplicationId: z.string().trim().min(1).max(100),
   applicantName: z.string().trim().min(1).max(150),
   applicantIdentificationNo: z.string().trim().min(1).max(12).optional(),
@@ -50,7 +50,7 @@ export const createApplicationSchema = z.discriminatedUnion("programCode", [
   }
 });
 
-export const updateApplicationStatusSchema = z.object({
+export const updateApplicationStatusSchema = z.strictObject({
   status: z.enum([
       "submitted",
       "under_review",
