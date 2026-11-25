@@ -11,6 +11,8 @@ export default defineConfig({
   },
 
   server: {
+    allowedHosts: [".trycloudflare.com"],
+
     proxy: {
       "/api": {
         target: "http://localhost:8787",
