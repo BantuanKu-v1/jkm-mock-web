@@ -2,6 +2,7 @@ import { D1Database } from "@cloudflare/workers-types";
 import {
   type CreateApplicationPayload,
   type DbApplication,
+  type DbAdminApplication,
   type JkmApplicationStatus,
 } from "../types/application";
 
@@ -32,10 +33,10 @@ export async function getApplicationByExternalId(
 ): Promise<DbApplication | null> {
   return db
       .prepare(`
-        SELECT *
-        FROM jkm_applications
-        WHERE source_system = ?
-          AND external_reference = ?
+          SELECT *
+          FROM jkm_applications
+          WHERE source_system = ?
+            AND external_reference = ?
       `)
       .bind(clientId, externalApplicationId)
       .first<DbApplication>();
@@ -49,10 +50,10 @@ export async function getApplicationById(
 ): Promise<DbApplication | null> {
   return db
       .prepare(`
-        SELECT *
-        FROM jkm_applications
-        WHERE source_system = ?
-          AND id = ?
+          SELECT *
+          FROM jkm_applications
+          WHERE source_system = ?
+            AND id = ?
       `)
       .bind(clientId, applicationId)
       .first<DbApplication>();
@@ -65,10 +66,10 @@ export async function getProgramByCode(
 ): Promise<{ id: string; code: string } | null> {
   return db
       .prepare(`
-        SELECT id, code
-        FROM jkm_programs
-        WHERE code = ?
-          AND is_active = 1
+          SELECT id, code
+          FROM jkm_programs
+          WHERE code = ?
+            AND is_active = 1
       `)
       .bind(programCode)
       .first<{ id: string; code: string }>();
@@ -81,9 +82,9 @@ export async function getProgramById(
 ): Promise<{ id: string; code: string } | null> {
   return db
       .prepare(`
-        SELECT id, code
-        FROM jkm_programs
-        WHERE id = ?
+          SELECT id, code
+          FROM jkm_programs
+          WHERE id = ?
       `)
       .bind(programId)
       .first<{ id: string; code: string }>();
@@ -213,7 +214,7 @@ export async function createApplication(
 // Retrieve all submitted JKM applications for the admin dashboard
 export async function getAllApplications(
     db: D1Database
-): Promise<DbApplication[]> {
+): Promise<DbAdminApplication[]> {
   const result = await db
       .prepare(`
         SELECT
@@ -223,7 +224,7 @@ export async function getAllApplications(
         JOIN jkm_programs p ON a.program_id = p.id
         ORDER BY julianday(a.submitted_at) DESC, a.id DESC
       `)
-      .all<DbApplication>();
+      .all<DbAdminApplication>();
 
   return result.results;
 }
@@ -232,28 +233,49 @@ export async function getAllApplications(
 export async function getAdminApplicationById(
     db: D1Database,
     applicationId: string
-): Promise<DbApplication | null> {
+): Promise<DbAdminApplication | null> {
   return db
       .prepare(`
-        SELECT *
-        FROM jkm_applications
-        WHERE id = ?
+          SELECT
+              a.*,
+              p.code AS program_code
+          FROM jkm_applications a
+                   JOIN jkm_programs p ON a.program_id = p.id
+          WHERE a.id = ?
       `)
       .bind(applicationId)
-      .first<DbApplication>();
+      .first<DbAdminApplication>();
 }
 
 // Update an application's processing status
 export async function updateApplicationStatus(
     db: D1Database,
     applicationId: string,
-    status: JkmApplicationStatus
-): Promise<DbApplication | null> {
-  const timestamp = new Date().toISOString();
+    expectedStatus: JkmApplicationStatus,
+    status: JkmApplicationStatus,
+    expectedUpdatedAt: string
+): Promise<DbAdminApplication | null> {
+  // Prevent unnecessary status updates
+  if (expectedStatus === status) {
+    return null;
+  }
+
+  // Ensure each status change has a strictly newer timestamp
+  const previousTimestamp = Date.parse(
+      normalizeApplicationTimestamp(expectedUpdatedAt)
+  );
+
+  const timestamp = new Date(
+      Math.max(
+          Date.now(),
+          previousTimestamp + 1
+      )
+  ).toISOString();
+
   const historyId = crypto.randomUUID();
 
-  await db.batch([
-    // Record the current status before updating the application
+  const results = await db.batch([
+    // Record the current status only if the application still matches the previously retrieved record
     db.prepare(`
       INSERT INTO jkm_application_status_history (
         id,
@@ -274,7 +296,8 @@ export async function updateApplicationStatus(
         ?
       FROM jkm_applications
       WHERE id = ?
-        AND status <> ?
+        AND status = ?
+        AND updated_at = ?
     `).bind(
         historyId,
         status,
@@ -282,26 +305,50 @@ export async function updateApplicationStatus(
         null,
         timestamp,
         applicationId,
-        status
+        expectedStatus,
+        expectedUpdatedAt
     ),
 
-    // Update only when the application status changes
+    // Update only if the application has not changed since its status transition was validated
     db.prepare(`
       UPDATE jkm_applications
       SET status = ?,
           updated_at = ?
       WHERE id = ?
-        AND status <> ?
+        AND status = ?
+        AND updated_at = ?
     `).bind(
         status,
         timestamp,
         applicationId,
-        status
+        expectedStatus,
+        expectedUpdatedAt
     ),
+
+    // Retrieve the updated application within the same batch
+    db.prepare(`
+      SELECT
+          a.*,
+          p.code AS program_code
+      FROM jkm_applications a
+      JOIN jkm_programs p ON a.program_id = p.id
+      WHERE a.id = ?
+    `).bind(applicationId),
   ]);
 
-  return getAdminApplicationById(
-      db,
-      applicationId
-  );
+  const updateResult = results[1];
+
+  // The application may have changed before the update
+  if (updateResult.meta.changes !== 1) {
+    return null;
+  }
+
+  const updatedApplication =
+      results[2].results[0] as DbAdminApplication | undefined;
+
+  if (!updatedApplication) {
+    throw new Error("Failed to retrieve updated application");
+  }
+
+  return updatedApplication;
 }
